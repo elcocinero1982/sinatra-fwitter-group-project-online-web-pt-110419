@@ -8,5 +8,54 @@ class ApplicationController < Sinatra::Base
       enable :sessions
     set :session_secret, "fwitter"
   end
+ get '/' do 
+    
+    @tweets = Tweet.all
+    @users = User.all
+    erb :tweets
+  end
 
+  post '/tweets' do
+
+    new_tweet = Tweet.new( :user_id=> params[:user_id], :message => params[:message])
+    new_tweet.save
+    redirect ('/')
+
+  end
+
+  get '/login' do
+    erb :login
+
+  end
+
+  post '/login' do
+    @user = User.find_by(:username => params[:username], :email => params[:email])
+    if @user
+    session[:user_id] = @user.id
+    redirect('/')
+    else 
+      erb :error
+    end
+  end
+
+  get '/users' do 
+    @logged_in_user = User.find(session[:user_id])
+    @users = User.all
+    erb :users
+  end
+
+  post '/users' do
+    new_user = User.new(:username => params[:username], :email => params[:email], :profile_pic => params[:profile_pic], :age => params[:age])
+    new_user.save
+    redirect ('/users')
+  end
+
+  get '/logout' do
+    session[:user_id] = nil
+    redirect('/login')
+  end
+
+  get '/error' do
+    erb :error
+  end
 end
